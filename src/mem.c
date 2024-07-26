@@ -33,12 +33,14 @@ void	run68_abort( Long );
  　　　　の値を得る
  戻り値：その値
 */
-Long idx_get()
+Long idx_get(BOOL* err)
 {
-	char	*mem;
+	unsigned char	*mem;
 	char	idx2;
 	char	idx_reg;
+	char	scale;
 	Long	idx;
+    Long    disp = 0;
 
 	mem = prog_ptr + pc;
 	idx2 = *(mem++);
@@ -53,9 +55,58 @@ Long idx_get()
 		else
 			idx &= 0x0000FFFF;
 	}
+	scale = 1 << ((idx2 & 0x06) >> 1);  // 030拡張: 1,2,4,8倍のスケールファクタ
 	pc += 2;
+    if ( (idx2 & 0x01) == 0 ) {
+        disp = *mem;
+    } else {
+        Long idx3 = *(mem++);
+        // 030拡張: フルフォーマットの間接指定
+        BOOL bs = (idx3 >> 7) & 0x01;
+        BOOL is = (idx3 >> 6) & 0x01;
+        int bd_size = (idx3 >> 4) & 0x03;
+        BOOL resv = (idx3 >> 3) & 0x01;
+        int iis = (idx3) & 0x07;
+        if (bs) {
+            // ベースレジスタサプレスは未サポート
+            *err =TRUE;
+            return 0;
+        }
+        switch ( bd_size ) { // MC68030ユーザーズマニュアル(日本語) P31参照
+            case 1: // ヌルディスプレースメント
+                disp = 0; // あってる？
+                break;
+            case 2: // ワードディスプレースメント
+                pc += 2;
+                disp = *(mem++);
+                disp = ((disp << 8) | *mem);
+                break;
+            case 3: // ロングワードディスプレースメント
+                pc += 4;
+                disp = *(mem++);
+                disp = ((disp << 8) | *(mem++));
+                disp = ((disp << 8) | *(mem++));
+                disp = ((disp << 8) | *mem);
+                break;
+            default:
+                *err =TRUE;
+                return 0;
+        }
+        if (resv) { // 予約ビットが1の場合解釈不能
+            *err =TRUE;
+            return 0;
+        }
+        switch ( is ? (8+iis) : (iis)) { // MC68030ユーザーズマニュアル(日本語) P32参照
+            case 0:     // メモリ間接なし
+                break;
+            default:
+                // アウタディスプレースメントはまだ未対応
+                *err =TRUE;
+                return 0;
+        }
+    }
 
-	return( idx + *mem );
+	return( (idx * scale) + disp );
 }
 
 /*

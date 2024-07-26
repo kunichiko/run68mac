@@ -298,7 +298,7 @@ Long add_long(Long src, Long dest, int size);
 Long sub_long(Long src, Long dest, int size);
 
 /* mem.c */
-Long	idx_get( void ) ;
+Long	idx_get( BOOL* ) ;
 Long	imi_get ( char ) ;
 Long	mem_get ( Long, char ) ;
 void	mem_set ( Long, Long, char ) ;

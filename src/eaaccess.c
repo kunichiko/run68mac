@@ -80,9 +80,14 @@ BOOL get_ea(Long save_pc, int AceptAdrMode, int mode, int reg, Long *data)
 			*data = ra [ reg ] + (int)disp;
 			break;
 		case EA_AIX:
-			idx = idx_get();
-			*data = ra [ reg ] + idx;
-			break;
+            idx = idx_get(&retcode);
+            if (retcode) {
+                err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                break;
+            } else {
+                *data = ra [ reg ] + idx;
+                break;
+            }
 		case EA_SRT:
 			idx = imi_get( S_WORD );
 			if ( (idx & 0x8000) != 0 )
@@ -97,10 +102,15 @@ BOOL get_ea(Long save_pc, int AceptAdrMode, int mode, int reg, Long *data)
 			*data = save_pc + (int)disp;
 			break;
 		case EA_PCX:
-			idx = idx_get();
-			*data = save_pc + idx;
-			break;
-		default:
+            idx = idx_get(&retcode);
+            if (retcode) {
+                err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                break;
+            } else {
+                *data = save_pc + idx;
+                break;
+            }
+        default:
 			err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
 			retcode = TRUE;
 	}
@@ -205,9 +215,14 @@ BOOL get_data_at_ea(int AceptAdrMode, int mode, int reg, int size, Long *data)
 				*data = mem_get( ra [ reg ] + disp, (char)size );
 				break;
 			case EA_AIX:
-				idx = idx_get();
-				*data = mem_get( ra [ reg ] + (int)idx, (char)size );
-				break;
+                idx = idx_get(&retcode);
+                if (retcode) {
+                    err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                    break;
+                } else {
+                    *data = mem_get( ra [ reg ] + (int)idx, (char)size );
+                    break;
+                }
 			case EA_SRT:
 				idx = imi_get( S_WORD );
 				if ( (idx & 0x8000) != 0 )
@@ -223,9 +238,14 @@ BOOL get_data_at_ea(int AceptAdrMode, int mode, int reg, int size, Long *data)
 				*data = mem_get( save_pc + disp, (char)size );
 				break;
 			case EA_PCX:
-				idx = idx_get();
-				*data = mem_get( save_pc + idx, (char)size );
-				break;
+                idx = idx_get(&retcode);
+                if (retcode) {
+                    err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                    break;
+                } else {
+                    *data = mem_get( save_pc + idx, (char)size );
+                    break;
+                }
 			case EA_IM:
 				*data = imi_get( (char)size );
 				break;
@@ -338,9 +358,14 @@ BOOL set_data_at_ea(int AceptAdrMode, int mode, int reg, int size, Long data)
 				mem_set( ra [ reg ] + (int)disp, data, (char)size );
 				break;
 			case EA_AIX:
-				idx = idx_get();
-				mem_set( ra [ reg ] + idx, data, (char)size );
-				break;
+                idx = idx_get(&retcode);
+                if (retcode) {
+                    err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                    break;
+                } else {
+                    mem_set( ra [ reg ] + idx, data, (char)size );
+                    break;
+                }
 			case EA_SRT:
 				idx = imi_get( S_WORD );
 				if ( (idx & 0x8000) != 0 )
@@ -356,9 +381,14 @@ BOOL set_data_at_ea(int AceptAdrMode, int mode, int reg, int size, Long data)
 				mem_set( save_pc + (int)disp, data, (char)size );
 				break;
 			case EA_PCX:
-				idx = idx_get();
-				mem_set( save_pc + idx, data, (char)size );
-				break;
+                idx = idx_get(&retcode);
+                if (retcode) {
+                    err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
+                    break;
+                } else {
+                    mem_set( save_pc + idx, data, (char)size );
+                    break;
+                }
 			default:
 				err68a( "アドレッシングモードが異常です。", __FILE__, __LINE__ );
 				retcode = TRUE;
