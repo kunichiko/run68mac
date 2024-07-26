@@ -35,7 +35,7 @@ void	run68_abort( Long );
 */
 Long idx_get(BOOL* err)
 {
-	unsigned char	*mem;
+	char	*mem;
 	char	idx2;
 	char	idx_reg;
 	char	scale;
@@ -58,7 +58,7 @@ Long idx_get(BOOL* err)
 	scale = 1 << ((idx2 & 0x06) >> 1);  // 030拡張: 1,2,4,8倍のスケールファクタ
 	pc += 2;
     if ( (idx2 & 0x01) == 0 ) {
-        disp = *mem;
+        disp = *mem;                    // 符号拡張される
     } else {
         Long idx3 = *(mem++);
         // 030拡張: フルフォーマットの間接指定
@@ -78,15 +78,15 @@ Long idx_get(BOOL* err)
                 break;
             case 2: // ワードディスプレースメント
                 pc += 2;
-                disp = *(mem++);
-                disp = ((disp << 8) | *mem);
+                disp = *(mem++);                                // 最上位バイトだけ符号拡張
+                disp = (disp << 8) | (((Long)(*mem)) & 0xff);
                 break;
             case 3: // ロングワードディスプレースメント
                 pc += 4;
-                disp = *(mem++);
-                disp = ((disp << 8) | *(mem++));
-                disp = ((disp << 8) | *(mem++));
-                disp = ((disp << 8) | *mem);
+                disp = *(mem++);                                // 最上位バイトだけ符号拡張
+                disp = (disp << 8) | (((Long)(*mem++)) & 0xff);
+                disp = (disp << 8) | (((Long)(*mem++)) & 0xff);
+                disp = (disp << 8) | (((Long)(*mem)) & 0xff);
                 break;
             default:
                 *err =TRUE;
