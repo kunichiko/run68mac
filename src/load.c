@@ -314,19 +314,24 @@ static	Long	xfile_cnv( Long *prog_size, Long read_top, int mes_flag )
 */
 static	int	xrelocate( Long reloc_adr, Long reloc_size, Long read_top )
 {
-	Long	prog_adr;
-	Long	data;
-	UShort	disp;
-
-	prog_adr = read_top;
-	for(; reloc_size > 0; reloc_size -= 2, reloc_adr += 2 ) {
-		disp = (UShort)mem_get( read_top + reloc_adr, S_WORD );
-		if ( disp == 1 )
-			return ( FALSE );
-		prog_adr += disp;
-		data = mem_get( prog_adr, S_LONG ) + read_top;
-		mem_set( prog_adr, data, S_LONG );
-	}
+    Long    prog_adr;
+    Long    data;
+    UShort    disp;
+    prog_adr = read_top;
+    for(; reloc_size > 0; reloc_size -= 2, reloc_adr += 2 ) {
+        disp = (UShort)mem_get( read_top + reloc_adr, S_WORD );
+        if ( disp == 1 ) {
+            reloc_size -= 2;
+            reloc_adr += 2;
+            prog_adr += mem_get( read_top + reloc_adr, S_LONG );
+            reloc_size -= 2; // for文内の操作と合わせて4byte分進める
+            reloc_adr += 2;
+        } else {
+            prog_adr += disp;
+        }
+        data = mem_get( prog_adr, S_LONG ) + read_top;
+        mem_set( prog_adr, data, S_LONG );
+    }
 
 	return( TRUE );
 }
